@@ -13,6 +13,7 @@ using BepInEx.Configuration;
 using BBPlusNameAPI;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 
 
 //This entire codebase will probably be re-used for a future project ;)
@@ -23,7 +24,7 @@ namespace BBChallengeMaker
     public class BaldiChallengeMaker : BaseUnityPlugin
     {
 
-        
+        public static List<MapData.LevelData> LevelDatas = new List<MapData.LevelData>();
 
         private static Texture TextureFromBase64(string base64)
         {
@@ -33,6 +34,7 @@ namespace BBChallengeMaker
             texture2D.filterMode = 0;
             return texture2D;
         }
+
 
         private static bool HasAlreadyLoaded = false;
         private static void Load()
@@ -106,9 +108,23 @@ namespace BBChallengeMaker
         void Awake()
         {
             Harmony harmony = new Harmony("mtm101.rulerp.bbplus.challengemaker");
-            //NameMenuManager.AddPage("mtmcmoptions", "options");
-            //NameMenuManager.AddToPage("options", new Name_MenuFolder("mtmcmoptions", "Challenge Maker", "bbpbnoptions"));
 
+            string pathtosearch = Path.Combine(Application.streamingAssetsPath,"Custom Challenges");
+            foreach (string FoDir in Directory.GetFiles(pathtosearch,"*.json"))
+            {
+                MapData.LevelData dat = null;
+                try
+                {
+                    dat = JsonConvert.DeserializeObject<MapData.LevelData>(File.ReadAllText(FoDir));
+                }
+                catch(Exception E)
+                {
+                    UnityEngine.Debug.LogError("File failed to load:" + FoDir);
+                    UnityEngine.Debug.LogError(E.Message);
+                    continue;
+                }
+                LevelDatas.Add(dat);
+            }
 
             harmony.PatchAll();
         }
