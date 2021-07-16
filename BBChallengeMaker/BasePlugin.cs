@@ -14,6 +14,8 @@ using BBPlusNameAPI;
 using System.Collections.Generic;
 using System.Linq;
 
+
+//This entire codebase will probably be re-used for a future project ;)
 namespace BBChallengeMaker
 {
     [BepInPlugin("mtm101.rulerp.bbplus.challengemaker", "BB+ Challenge Maker", "0.0.0.0")]
