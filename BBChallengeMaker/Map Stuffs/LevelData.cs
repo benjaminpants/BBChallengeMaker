@@ -287,15 +287,30 @@ namespace BBChallengeMaker.MapData
                 {
                     RotoHallBuilderGeneric gen = (RotoHallBuilderGeneric)whb;
                     FieldInfo buttonRange = AccessTools.Field(typeof(RotoHallBuilder), "buttonRange");
-                    buttonRange.SetValue(build,gen.buttonRange);
+                    buttonRange.SetValue(build, gen.buttonRange);
                 }
                 else if (whb.Name == "BeltBuilder")
                 {
                     BeltBuilderGeneric gen = (BeltBuilderGeneric)whb;
                     FieldInfo buttonRange = AccessTools.Field(typeof(BeltBuilder), "buttonRange");
-                    buttonRange.SetValue(build,gen.buttonRange);
+                    buttonRange.SetValue(build, gen.buttonRange);
                     FieldInfo minHallSize = AccessTools.Field(typeof(BeltBuilder), "minHallSize");
                     minHallSize.SetValue(build, gen.minHallSize);
+                }
+                else if (whb.Name == "GenericHallBuilder")
+                {
+                    HallObjectBuilderGeneric gen = (HallObjectBuilderGeneric)whb;
+                    FieldInfo objectPlacer = AccessTools.Field(typeof(GenericHallBuilder), "objectPlacer");
+                    FieldInfo prefab = AccessTools.Field(typeof(ObjectPlacer), "prefab");
+                    try
+                    {
+                        prefab.SetValue(objectPlacer.GetValue(build), Resources.FindObjectsOfTypeAll<UnityEngine.GameObject>().ToList().Find(x => x.name == gen.Prefab));
+                    }
+                    catch(Exception E)
+                    {
+                        UnityEngine.Debug.LogWarning("Exception Caught while trying to find prefab!");
+                        UnityEngine.Debug.LogException(E);
+                    }
                 }
 
                 WeightedObjectBuilder wob = new WeightedObjectBuilder();
@@ -452,6 +467,15 @@ namespace BBChallengeMaker.MapData
                     buld.buttonRange = (int)buttonRange.GetValue(buil);
                     FieldInfo minHallSize = AccessTools.Field(typeof(BeltBuilder), "minHallSize");
                     buld.minHallSize = (int)minHallSize.GetValue(buil);
+                }
+                else if (whb.selection.GetType() == typeof(GenericHallBuilder))
+                {
+                    hbg = new HallObjectBuilderGeneric();
+                    HallObjectBuilderGeneric buld = hbg as HallObjectBuilderGeneric;
+                    GenericHallBuilder buil = (GenericHallBuilder)whb.selection;
+                    FieldInfo objectPlacer = AccessTools.Field(typeof(GenericHallBuilder), "objectPlacer");
+                    FieldInfo prefab = AccessTools.Field(typeof(ObjectPlacer), "prefab");
+                    buld.Prefab = (prefab.GetValue(objectPlacer.GetValue(buil) as ObjectPlacer) as GameObject).name;
                 }
                 else
                 {

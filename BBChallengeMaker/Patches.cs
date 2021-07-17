@@ -27,6 +27,18 @@ namespace BBChallengeMaker
             //File.WriteAllText(Path.Combine(Application.streamingAssetsPath, "test.json"), JsonConvert.SerializeObject(__instance.ld.ToData(),Formatting.Indented,BaldiChallengeMaker.settings));
             //MapData.LevelData data = JsonConvert.DeserializeObject<MapData.LevelData>(File.ReadAllText(Path.Combine(Application.streamingAssetsPath, "test.json")));
             BaldiChallengeMaker.LevelDatas[0].SendToData(ref __instance.ld);
+            
+            return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(BaseGameManager))]
+    [HarmonyPatch("Initialize")]
+    class BaseGameOverride
+    {
+        static bool Prefix(BaseGameManager __instance)
+        {
+            __instance.Ec.map.CompleteMap();
             return true;
         }
     }

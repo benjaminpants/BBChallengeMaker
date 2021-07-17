@@ -31,6 +31,11 @@ namespace BBChallengeMaker.MapData
         public string Name;
     }
 
+    public class HallObjectBuilderGeneric : ObjectBuilderGeneric
+    {
+        public string Prefab;
+    }
+
     public class SwingDoorBuilderGeneric : ObjectBuilderGeneric
     {
         public float spawnChance = 0.2f;
