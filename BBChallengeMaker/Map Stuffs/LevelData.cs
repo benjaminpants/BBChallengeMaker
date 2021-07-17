@@ -162,6 +162,10 @@ namespace BBChallengeMaker.MapData
 
         public List<ObjectBuilderGeneric> specialHallBuilders = new List<ObjectBuilderGeneric>();
 
+        public List<NPCGeneric> potentialNPCs = new List<NPCGeneric>();
+
+        public List<string> forcedNpcs = new List<string>();
+
         public void SendToData(ref LevelObject obj)
         {
             obj.minSize = minSize;
@@ -274,43 +278,58 @@ namespace BBChallengeMaker.MapData
                     continue;
                 }
                 build = GameObject.Instantiate(build);
+                try
+                {
 
-                if (whb.Name == "SwingDoorBuilder")
-                {
-                    SwingDoorBuilderGeneric gen = (SwingDoorBuilderGeneric)whb;
-                    FieldInfo spawnChance = AccessTools.Field(typeof(SwingDoorBuilder), "spawnChance");
-                    spawnChance.SetValue(build, gen.spawnChance);
-                    FieldInfo minHallLength = AccessTools.Field(typeof(SwingDoorBuilder), "minHallLength");
-                    minHallLength.SetValue(build, gen.minHallLength);
-                }
-                else if (whb.Name == "RotoHallBuilder")
-                {
-                    RotoHallBuilderGeneric gen = (RotoHallBuilderGeneric)whb;
-                    FieldInfo buttonRange = AccessTools.Field(typeof(RotoHallBuilder), "buttonRange");
-                    buttonRange.SetValue(build, gen.buttonRange);
-                }
-                else if (whb.Name == "BeltBuilder")
-                {
-                    BeltBuilderGeneric gen = (BeltBuilderGeneric)whb;
-                    FieldInfo buttonRange = AccessTools.Field(typeof(BeltBuilder), "buttonRange");
-                    buttonRange.SetValue(build, gen.buttonRange);
-                    FieldInfo minHallSize = AccessTools.Field(typeof(BeltBuilder), "minHallSize");
-                    minHallSize.SetValue(build, gen.minHallSize);
-                }
-                else if (whb.Name == "GenericHallBuilder")
-                {
-                    HallObjectBuilderGeneric gen = (HallObjectBuilderGeneric)whb;
-                    FieldInfo objectPlacer = AccessTools.Field(typeof(GenericHallBuilder), "objectPlacer");
-                    FieldInfo prefab = AccessTools.Field(typeof(ObjectPlacer), "prefab");
-                    try
+                    if (whb.Name == "SwingDoorBuilder")
                     {
-                        prefab.SetValue(objectPlacer.GetValue(build), Resources.FindObjectsOfTypeAll<UnityEngine.GameObject>().ToList().Find(x => x.name == gen.Prefab));
+                        SwingDoorBuilderGeneric gen = (SwingDoorBuilderGeneric)whb;
+                        FieldInfo spawnChance = AccessTools.Field(typeof(SwingDoorBuilder), "spawnChance");
+                        spawnChance.SetValue(build, gen.spawnChance);
+                        FieldInfo minHallLength = AccessTools.Field(typeof(SwingDoorBuilder), "minHallLength");
+                        minHallLength.SetValue(build, gen.minHallLength);
                     }
-                    catch(Exception E)
+                    else if (whb.Name == "RotoHallBuilder")
                     {
-                        UnityEngine.Debug.LogWarning("Exception Caught while trying to find prefab!");
-                        UnityEngine.Debug.LogException(E);
+                        RotoHallBuilderGeneric gen = (RotoHallBuilderGeneric)whb;
+                        FieldInfo buttonRange = AccessTools.Field(typeof(RotoHallBuilder), "buttonRange");
+                        buttonRange.SetValue(build, gen.buttonRange);
                     }
+                    else if (whb.Name == "BeltBuilder")
+                    {
+                        BeltBuilderGeneric gen = (BeltBuilderGeneric)whb;
+                        FieldInfo buttonRange = AccessTools.Field(typeof(BeltBuilder), "buttonRange");
+                        buttonRange.SetValue(build, gen.buttonRange);
+                        FieldInfo minHallSize = AccessTools.Field(typeof(BeltBuilder), "minHallSize");
+                        minHallSize.SetValue(build, gen.minHallSize);
+                    }
+                    else if (whb.Name == "LockdownDoorBuilder")
+                    {
+                        LockdownDoorBuilderGeneric gen = (LockdownDoorBuilderGeneric)whb;
+                        FieldInfo buttonRange = AccessTools.Field(typeof(LockdownDoorBuilder), "buttonRange");
+                        buttonRange.SetValue(build, gen.buttonRange);
+                    }
+                    else if (whb.Name == "GenericHallBuilder")
+                    {
+                        HallObjectBuilderGeneric gen = (HallObjectBuilderGeneric)whb;
+                        FieldInfo objectPlacer = AccessTools.Field(typeof(GenericHallBuilder), "objectPlacer");
+                        FieldInfo prefab = AccessTools.Field(typeof(ObjectPlacer), "prefab");
+                        try
+                        {
+                            prefab.SetValue(objectPlacer.GetValue(build), Resources.FindObjectsOfTypeAll<UnityEngine.GameObject>().ToList().Find(x => x.name == gen.Prefab));
+                        }
+                        catch (Exception E)
+                        {
+                            UnityEngine.Debug.LogWarning("Exception Caught while trying to find prefab!");
+                            UnityEngine.Debug.LogException(E);
+                        }
+                    }
+                }
+                catch(Exception E)
+                {
+                    UnityEngine.Debug.LogError("Error encountered while trying to parse specialHallBuilders!");
+                    UnityEngine.Debug.LogException(E);
+                    continue;
                 }
 
                 WeightedObjectBuilder wob = new WeightedObjectBuilder();
@@ -318,7 +337,37 @@ namespace BBChallengeMaker.MapData
                 wob.weight = whb.weight;
                 objectbuilds.Add(wob);
             }
+
             obj.specialHallBuilders = objectbuilds.ToArray();
+            List<NPC> allnpcs = Resources.FindObjectsOfTypeAll<NPC>().ToList(); //get all NPCs that exist in the game
+
+            foreach (string npctype in forcedNpcs)
+            {
+                NPC npctoadd = allnpcs.Find(x => x.Character.ToString() == npctype);
+                if (npctoadd == null)
+                {
+                    UnityEngine.Debug.LogWarning("Invalid NPC:" + npctype + "\nNPC will not be added to forcedNpcs!");
+                    continue;
+                }
+            }
+            List<WeightedNPC> weightednpcs = new List<WeightedNPC>();
+            foreach (NPCGeneric npc in potentialNPCs)
+            {
+                NPC npcval = allnpcs.Find(x => x.Character.ToString() == npc.Character);
+                if (npcval == null)
+                {
+                    UnityEngine.Debug.LogWarning("Invalid NPC:" + npc.Character + "\nNPC will not be added to potentialNPCs!");
+                    continue;
+                }
+                WeightedNPC npctoadd = new WeightedNPC();
+                npctoadd.weight = npc.weight;
+                npctoadd.selection = npcval;
+                weightednpcs.Add(npctoadd);
+            }
+            obj.potentialNPCs = weightednpcs;
+
+
+            
         }
 
 
@@ -468,6 +517,14 @@ namespace BBChallengeMaker.MapData
                     FieldInfo minHallSize = AccessTools.Field(typeof(BeltBuilder), "minHallSize");
                     buld.minHallSize = (int)minHallSize.GetValue(buil);
                 }
+                else if (whb.selection.GetType() == typeof(LockdownDoorBuilder))
+                {
+                    hbg = new LockdownDoorBuilderGeneric();
+                    LockdownDoorBuilderGeneric buld = hbg as LockdownDoorBuilderGeneric;
+                    LockdownDoorBuilder buil = (LockdownDoorBuilder)whb.selection;
+                    FieldInfo buttonRange = AccessTools.Field(typeof(LockdownDoorBuilder), "buttonRange");
+                    buld.buttonRange = (int)buttonRange.GetValue(buil);
+                }
                 else if (whb.selection.GetType() == typeof(GenericHallBuilder))
                 {
                     hbg = new HallObjectBuilderGeneric();
@@ -485,6 +542,19 @@ namespace BBChallengeMaker.MapData
                 hbg.weight = whb.weight;
                 obj.specialHallBuilders.Add(hbg);
             }
+            foreach (NPC npc in me.forcedNpcs)
+            {
+
+                obj.forcedNpcs.Add(npc.Character.ToString());
+            }
+            foreach (WeightedNPC npc in me.potentialNPCs)
+            {
+                NPCGeneric npcgen = new NPCGeneric();
+                npcgen.Character = npc.selection.Character.ToString();
+                npcgen.weight = npc.weight;
+                obj.potentialNPCs.Add(npcgen);
+            }
+
             return obj;
         }
     }

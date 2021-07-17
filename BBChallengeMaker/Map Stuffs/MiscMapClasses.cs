@@ -20,7 +20,7 @@ namespace BBChallengeMaker.MapData
     public class NPCGeneric
     {
         public int weight;
-        public string Name;
+        public string Character;
     }
 
 }

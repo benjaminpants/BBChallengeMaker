@@ -39,6 +39,7 @@ namespace BBChallengeMaker
         static bool Prefix(BaseGameManager __instance)
         {
             __instance.Ec.map.CompleteMap();
+            //BaldiChallengeMaker.DumpAll(null);
             return true;
         }
     }

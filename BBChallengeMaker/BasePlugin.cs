@@ -107,26 +107,18 @@ namespace BBChallengeMaker
 
         }*/
 
-        private IEnumerator DumpAllNoom()
+
+
+        public static void DumpAll(Name_MenuObject obj)
         {
-            AsyncOperation asyncload = SceneManager.LoadSceneAsync("Game", LoadSceneMode.Additive);
-
-            while (!asyncload.isDone)
+            SceneObject[] objs = Resources.FindObjectsOfTypeAll<SceneObject>().Reverse().ToArray(); //copied from the mod menu
+            UnityEngine.Debug.Log(objs.Length);
+            foreach (SceneObject obej in objs)
             {
-                yield return null;
+                if (obej.levelObject == null) continue;
+                File.WriteAllText(Path.Combine(Application.streamingAssetsPath, obej.levelTitle + "_dump.json"), JsonConvert.SerializeObject(obej.levelObject.ToData(), Formatting.Indented, BaldiChallengeMaker.settings));
             }
-
-            UnityEngine.Debug.Log("Thing preloaded!");
-            LevelObject[] objs = Resources.FindObjectsOfTypeAll<LevelObject>();
-            foreach (LevelObject obej in objs)
-            {
-                File.WriteAllText(Path.Combine(Application.streamingAssetsPath, obej.name + "_dump.json"), JsonConvert.SerializeObject(obej.ToData(), Formatting.Indented, BaldiChallengeMaker.settings));
-            }
-        }
-
-        void DumpAll(Name_MenuObject obj)
-        {
-            StartCoroutine("DumpAllNoom");
+            File.WriteAllText(Path.Combine(Application.streamingAssetsPath, "TestLevel_dump.json"), JsonConvert.SerializeObject(Resources.FindObjectsOfTypeAll<LevelObject>()[0].ToData(), Formatting.Indented, BaldiChallengeMaker.settings));
         }
 
 

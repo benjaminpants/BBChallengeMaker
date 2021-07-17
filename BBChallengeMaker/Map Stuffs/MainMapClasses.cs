@@ -53,6 +53,11 @@ namespace BBChallengeMaker.MapData
         public float buttonChance = 25f;
     }
 
+    public class LockdownDoorBuilderGeneric : ObjectBuilderGeneric
+    {
+        public int buttonRange = 2;
+    }
+
     public class LockerBuilderGeneric : HallBuilderGeneric
     {
         public int minLockers = 15;
