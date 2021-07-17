@@ -160,6 +160,8 @@ namespace BBChallengeMaker.MapData
 
         public List<HallBuilderGeneric> standardHallBuilders = new List<HallBuilderGeneric>();
 
+        public List<ObjectBuilderGeneric> specialHallBuilders = new List<ObjectBuilderGeneric>();
+
         public void SendToData(ref LevelObject obj)
         {
             obj.minSize = minSize;
@@ -226,7 +228,7 @@ namespace BBChallengeMaker.MapData
             obj.timeBonusLimit = timeBonusLimit;
             obj.timeBonusVal = timeBonusVal;
             HallBuilder[] allhallgenericbuilders = Resources.FindObjectsOfTypeAll<HallBuilder>();
-            
+
             List<RandomHallBuilder> hallbuilds = new List<RandomHallBuilder>();
             foreach (HallBuilderGeneric hbg in standardHallBuilders)
             {
@@ -257,6 +259,51 @@ namespace BBChallengeMaker.MapData
 
             }
             obj.standardHallBuilders = hallbuilds.ToArray();
+            ObjectBuilder[] allobjectgenericbuilders = Resources.FindObjectsOfTypeAll<ObjectBuilder>();
+
+            List<WeightedObjectBuilder> objectbuilds = new List<WeightedObjectBuilder>();
+
+            foreach (ObjectBuilderGeneric whb in specialHallBuilders)
+            {
+
+                ObjectBuilder build = allobjectgenericbuilders.ToList().Find(x => x.GetType().Name == whb.Name);
+                
+                if (build == null)
+                {
+                    UnityEngine.Debug.LogWarning("Type:\"" + whb.Name + "\" not found!");
+                    continue;
+                }
+                build = GameObject.Instantiate(build);
+
+                if (whb.Name == "SwingDoorBuilder")
+                {
+                    SwingDoorBuilderGeneric gen = (SwingDoorBuilderGeneric)whb;
+                    FieldInfo spawnChance = AccessTools.Field(typeof(SwingDoorBuilder), "spawnChance");
+                    spawnChance.SetValue(build, gen.spawnChance);
+                    FieldInfo minHallLength = AccessTools.Field(typeof(SwingDoorBuilder), "minHallLength");
+                    minHallLength.SetValue(build, gen.minHallLength);
+                }
+                else if (whb.Name == "RotoHallBuilder")
+                {
+                    RotoHallBuilderGeneric gen = (RotoHallBuilderGeneric)whb;
+                    FieldInfo buttonRange = AccessTools.Field(typeof(RotoHallBuilder), "buttonRange");
+                    buttonRange.SetValue(build,gen.buttonRange);
+                }
+                else if (whb.Name == "BeltBuilder")
+                {
+                    BeltBuilderGeneric gen = (BeltBuilderGeneric)whb;
+                    FieldInfo buttonRange = AccessTools.Field(typeof(BeltBuilder), "buttonRange");
+                    buttonRange.SetValue(build,gen.buttonRange);
+                    FieldInfo minHallSize = AccessTools.Field(typeof(BeltBuilder), "minHallSize");
+                    minHallSize.SetValue(build, gen.minHallSize);
+                }
+
+                WeightedObjectBuilder wob = new WeightedObjectBuilder();
+                wob.selection = build;
+                wob.weight = whb.weight;
+                objectbuilds.Add(wob);
+            }
+            obj.specialHallBuilders = objectbuilds.ToArray();
         }
 
 
@@ -373,6 +420,46 @@ namespace BBChallengeMaker.MapData
                 hbg.Name = whb.selectable.GetType().Name;
                 hbg.chance = whb.chance;
                 obj.standardHallBuilders.Add(hbg);
+            }
+
+            foreach (WeightedObjectBuilder whb in me.specialHallBuilders)
+            {
+                ObjectBuilderGeneric hbg = null;
+                if (whb.selection.GetType() == typeof(SwingDoorBuilder))
+                {
+                    hbg = new SwingDoorBuilderGeneric();
+                    SwingDoorBuilderGeneric buld = hbg as SwingDoorBuilderGeneric;
+                    SwingDoorBuilder buil = (SwingDoorBuilder)whb.selection;
+                    FieldInfo spawnChance = AccessTools.Field(typeof(SwingDoorBuilder), "spawnChance");
+                    buld.spawnChance = (float)spawnChance.GetValue(buil);
+                    FieldInfo minHallLength = AccessTools.Field(typeof(SwingDoorBuilder), "minHallLength");
+                    buld.minHallLength = (int)minHallLength.GetValue(buil);
+                }
+                else if (whb.selection.GetType() == typeof(RotoHallBuilder))
+                {
+                    hbg = new RotoHallBuilderGeneric();
+                    RotoHallBuilderGeneric buld = hbg as RotoHallBuilderGeneric;
+                    RotoHallBuilder buil = (RotoHallBuilder)whb.selection;
+                    FieldInfo buttonRange = AccessTools.Field(typeof(RotoHallBuilder), "buttonRange");
+                    buld.buttonRange = (int)buttonRange.GetValue(buil);
+                }
+                else if (whb.selection.GetType() == typeof(BeltBuilder))
+                {
+                    hbg = new BeltBuilderGeneric();
+                    BeltBuilderGeneric buld = hbg as BeltBuilderGeneric;
+                    BeltBuilder buil = (BeltBuilder)whb.selection;
+                    FieldInfo buttonRange = AccessTools.Field(typeof(BeltBuilder), "buttonRange");
+                    buld.buttonRange = (int)buttonRange.GetValue(buil);
+                    FieldInfo minHallSize = AccessTools.Field(typeof(BeltBuilder), "minHallSize");
+                    buld.minHallSize = (int)minHallSize.GetValue(buil);
+                }
+                else
+                {
+                    hbg = new ObjectBuilderGeneric();
+                }
+                hbg.Name = whb.selection.GetType().Name;
+                hbg.weight = whb.weight;
+                obj.specialHallBuilders.Add(hbg);
             }
             return obj;
         }

@@ -23,6 +23,31 @@ namespace BBChallengeMaker.MapData
         public float chance;
         public string Name;
     }
+
+    public class ObjectBuilderGeneric
+    {
+
+        public int weight;
+        public string Name;
+    }
+
+    public class SwingDoorBuilderGeneric : ObjectBuilderGeneric
+    {
+        public float spawnChance = 0.2f;
+        public int minHallLength = 5;
+    }
+
+    public class RotoHallBuilderGeneric : ObjectBuilderGeneric
+    {
+        public int buttonRange = 6;
+    }
+    public class BeltBuilderGeneric : ObjectBuilderGeneric
+    {
+        public int buttonRange = 3;
+        public int minHallSize = 6;
+        public float buttonChance = 25f;
+    }
+
     public class LockerBuilderGeneric : HallBuilderGeneric
     {
         public int minLockers = 15;

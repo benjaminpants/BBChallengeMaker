@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Collections;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Net;
@@ -14,6 +15,7 @@ using BBPlusNameAPI;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
+using BBChallengeMaker.MapData;
 
 
 //This entire codebase will probably be re-used for a future project ;)
@@ -105,11 +107,35 @@ namespace BBChallengeMaker
 
         }*/
 
+        private IEnumerator DumpAllNoom()
+        {
+            AsyncOperation asyncload = SceneManager.LoadSceneAsync("Game", LoadSceneMode.Additive);
+
+            while (!asyncload.isDone)
+            {
+                yield return null;
+            }
+
+            UnityEngine.Debug.Log("Thing preloaded!");
+            LevelObject[] objs = Resources.FindObjectsOfTypeAll<LevelObject>();
+            foreach (LevelObject obej in objs)
+            {
+                File.WriteAllText(Path.Combine(Application.streamingAssetsPath, obej.name + "_dump.json"), JsonConvert.SerializeObject(obej.ToData(), Formatting.Indented, BaldiChallengeMaker.settings));
+            }
+        }
+
+        void DumpAll(Name_MenuObject obj)
+        {
+            StartCoroutine("DumpAllNoom");
+        }
 
 
         void Awake()
         {
             Harmony harmony = new Harmony("mtm101.rulerp.bbplus.challengemaker");
+            NameMenuManager.AddPage("challengemakeroptions","options");
+            NameMenuManager.AddToPage("options", new Name_MenuFolder("gotocmo","BB+ Challenge Maker","challengemakeroptions"));
+            NameMenuManager.AddToPage("challengemakeroptions",new Name_MenuGeneric("dumpall","Dump Data for All Floors",DumpAll));
 
             string pathtosearch = Path.Combine(Application.streamingAssetsPath,"Custom Challenges");
             foreach (string FoDir in Directory.GetFiles(pathtosearch,"*.json"))
