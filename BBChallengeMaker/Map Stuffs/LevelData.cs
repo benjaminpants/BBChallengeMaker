@@ -343,7 +343,7 @@ namespace BBChallengeMaker.MapData
 
             obj.specialHallBuilders = objectbuilds.ToArray();
             List<NPC> allnpcs = Resources.FindObjectsOfTypeAll<NPC>().ToList(); //get all NPCs that exist in the game
-
+            List<NPC> npcstoforce = new List<NPC>();
             foreach (string npctype in forcedNpcs)
             {
                 NPC npctoadd = allnpcs.Find(x => x.Character.ToString() == npctype);
@@ -352,7 +352,9 @@ namespace BBChallengeMaker.MapData
                     UnityEngine.Debug.LogWarning("Invalid NPC:" + npctype + "\nNPC will not be added to forcedNpcs!");
                     continue;
                 }
+                npcstoforce.Add(npctoadd);
             }
+            obj.forcedNpcs = npcstoforce.ToArray();
             List<WeightedNPC> weightednpcs = new List<WeightedNPC>();
             foreach (NPCGeneric npc in potentialNPCs)
             {
@@ -368,6 +370,7 @@ namespace BBChallengeMaker.MapData
                 weightednpcs.Add(npctoadd);
             }
             obj.potentialNPCs = weightednpcs;
+            
 
 
             
