@@ -314,14 +314,17 @@ namespace BBChallengeMaker.MapData
                         HallObjectBuilderGeneric gen = (HallObjectBuilderGeneric)whb;
                         FieldInfo objectPlacer = AccessTools.Field(typeof(GenericHallBuilder), "objectPlacer");
                         FieldInfo prefab = AccessTools.Field(typeof(ObjectPlacer), "prefab");
+                        
                         try
                         {
-                            prefab.SetValue(objectPlacer.GetValue(build), Resources.FindObjectsOfTypeAll<UnityEngine.GameObject>().ToList().Find(x => x.name == gen.Prefab));
+                            build = GameObject.Instantiate(Resources.FindObjectsOfTypeAll<GenericHallBuilder>().ToList().Find(x => (prefab.GetValue((objectPlacer.GetValue(x) as ObjectPlacer)) as GameObject).name == gen.Prefab)); //if the variables where public the predicate would just be: x.objectPlacer.prefab.name == gen.Prefab
                         }
                         catch (Exception E)
                         {
                             UnityEngine.Debug.LogWarning("Exception Caught while trying to find prefab!");
                             UnityEngine.Debug.LogException(E);
+                            GameObject.Destroy(build);
+                            continue;
                         }
                     }
                 }
