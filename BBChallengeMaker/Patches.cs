@@ -24,7 +24,7 @@ namespace BBChallengeMaker
     {
         static bool Prefix(LevelGenerator __instance)
         {
-            //File.WriteAllText(Path.Combine(Application.streamingAssetsPath, "test.json"), JsonConvert.SerializeObject(__instance.ld.ToData()));
+            //File.WriteAllText(Path.Combine(Application.streamingAssetsPath, "test.json"), JsonConvert.SerializeObject(__instance.ld.ToData(),Formatting.Indented,BaldiChallengeMaker.settings));
             //MapData.LevelData data = JsonConvert.DeserializeObject<MapData.LevelData>(File.ReadAllText(Path.Combine(Application.streamingAssetsPath, "test.json")));
             BaldiChallengeMaker.LevelDatas[0].SendToData(ref __instance.ld);
             return true;

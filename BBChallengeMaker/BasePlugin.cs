@@ -24,6 +24,8 @@ namespace BBChallengeMaker
     public class BaldiChallengeMaker : BaseUnityPlugin
     {
 
+        public static JsonSerializerSettings settings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto };
+
         public static List<MapData.LevelData> LevelDatas = new List<MapData.LevelData>();
 
         private static Texture TextureFromBase64(string base64)
@@ -115,7 +117,7 @@ namespace BBChallengeMaker
                 MapData.LevelData dat = null;
                 try
                 {
-                    dat = JsonConvert.DeserializeObject<MapData.LevelData>(File.ReadAllText(FoDir));
+                    dat = JsonConvert.DeserializeObject<MapData.LevelData>(File.ReadAllText(FoDir), BaldiChallengeMaker.settings);
                 }
                 catch(Exception E)
                 {

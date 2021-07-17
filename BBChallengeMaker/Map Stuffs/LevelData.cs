@@ -12,6 +12,7 @@ using HarmonyLib;
 using BepInEx.Configuration;
 using BBPlusNameAPI;
 using System.Collections.Generic;
+using HarmonyLib.Tools;
 using System.Linq;
 
 namespace BBChallengeMaker.MapData
@@ -157,6 +158,8 @@ namespace BBChallengeMaker.MapData
 
         public int timeBonusVal = 50;
 
+        public List<HallBuilderGeneric> standardHallBuilders = new List<HallBuilderGeneric>();
+
         public void SendToData(ref LevelObject obj)
         {
             obj.minSize = minSize;
@@ -222,6 +225,38 @@ namespace BBChallengeMaker.MapData
             obj.totalShopItems = totalShopItems;
             obj.timeBonusLimit = timeBonusLimit;
             obj.timeBonusVal = timeBonusVal;
+            HallBuilder[] allhallgenericbuilders = Resources.FindObjectsOfTypeAll<HallBuilder>();
+            
+            List<RandomHallBuilder> hallbuilds = new List<RandomHallBuilder>();
+            foreach (HallBuilderGeneric hbg in standardHallBuilders)
+            {
+
+                HallBuilder build = allhallgenericbuilders.ToList().Find(x => x.GetType().Name == hbg.Name);
+
+                if (build == null)
+                {
+                    UnityEngine.Debug.LogWarning("Type:\"" + hbg.Name + "\" not found!");
+                    continue;
+                }
+                build = GameObject.Instantiate(build);
+                if (hbg.Name == "LockerBuilder")
+                {
+                    LockerBuilder lockbuild = (LockerBuilder)build;
+                    LockerBuilderGeneric gnbuild = (LockerBuilderGeneric)hbg;
+                    FieldInfo minLockers = AccessTools.Field(typeof(LockerBuilder), "minLockers");
+                    minLockers.SetValue(lockbuild, gnbuild.minLockers);
+                    FieldInfo maxLockers = AccessTools.Field(typeof(LockerBuilder), "maxLockers");
+                    maxLockers.SetValue(lockbuild, gnbuild.maxLockers);
+                    FieldInfo hideableChance = AccessTools.Field(typeof(LockerBuilder), "hideableChance");
+                    hideableChance.SetValue(lockbuild, gnbuild.hideableChance);
+                }
+                RandomHallBuilder rngbuild = new RandomHallBuilder();
+                rngbuild.chance = hbg.chance;
+                rngbuild.selectable = build;
+                hallbuilds.Add(rngbuild);
+
+            }
+            obj.standardHallBuilders = hallbuilds.ToArray();
         }
 
 
@@ -316,6 +351,29 @@ namespace BBChallengeMaker.MapData
             obj.totalShopItems = me.totalShopItems;
             obj.timeBonusLimit = me.timeBonusLimit;
             obj.timeBonusVal = me.timeBonusVal;
+            foreach (RandomHallBuilder whb in me.standardHallBuilders)
+            {
+                HallBuilderGeneric hbg = null;
+                if (whb.selectable.GetType() == typeof(LockerBuilder))
+                {
+                    hbg = new LockerBuilderGeneric();
+                    LockerBuilderGeneric buld = hbg as LockerBuilderGeneric;
+                    LockerBuilder buil = (LockerBuilder)whb.selectable;
+                    FieldInfo minLockers = AccessTools.Field(typeof(LockerBuilder), "minLockers");
+                    buld.minLockers = (int)minLockers.GetValue(buil);
+                    FieldInfo maxLockers = AccessTools.Field(typeof(LockerBuilder), "maxLockers");
+                    buld.maxLockers = (int)maxLockers.GetValue(buil);
+                    FieldInfo hideableChance = AccessTools.Field(typeof(LockerBuilder), "hideableChance");
+                    buld.hideableChance = (float)hideableChance.GetValue(buil);
+                }
+                else
+                {
+                    hbg = new HallBuilderGeneric();
+                }
+                hbg.Name = whb.selectable.GetType().Name;
+                hbg.chance = whb.chance;
+                obj.standardHallBuilders.Add(hbg);
+            }
             return obj;
         }
     }
