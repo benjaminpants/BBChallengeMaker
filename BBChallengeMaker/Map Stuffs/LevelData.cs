@@ -449,6 +449,7 @@ namespace BBChallengeMaker.MapData
             obj.fieldTripItems = weighteditemsnotobjects;
 
             List<WeightedRoomBuilder> officethingies = new List<WeightedRoomBuilder>();
+            List<WeightedRoomBuilder> classthingies = new List<WeightedRoomBuilder>();
             foreach (RoomBuilderGeneric wrb in officeBuilders)
             {
                 WeightedRoomBuilder RBG = new WeightedRoomBuilder();
@@ -459,7 +460,7 @@ namespace BBChallengeMaker.MapData
                 if (wrb.Name == "OfficeBuilderStandard")
                 {
                     FieldInfo windowchance = AccessTools.Field(typeof(OfficeBuilderStandard), "windowChance");
-                    windowchance.SetValue(src as OfficeBuilderStandard,((OfficeBuilderGeneric)wrb).windowChance);
+                    windowchance.SetValue(src as OfficeBuilderStandard, ((OfficeBuilderGeneric)wrb).windowChance);
                 }
 
                 RBG.selection = src;
@@ -468,6 +469,28 @@ namespace BBChallengeMaker.MapData
             }
 
             obj.officeBuilders = officethingies.ToArray();
+
+            foreach (RoomBuilderGeneric wrb in classBuilders)
+            {
+                WeightedRoomBuilder RBG = new WeightedRoomBuilder();
+                RBG.weight = wrb.Weight;
+
+                RoomBuilder src = allroombuilders.Find(x => x.GetType().Name == wrb.Name);
+
+                if (wrb.Name == "ClassBuilder")
+                {
+                    FieldInfo chairDistance = AccessTools.Field(typeof(ClassBuilder), "chairDistance");
+                    chairDistance.SetValue(src as ClassBuilder, ((ClassBuilderGeneric)wrb).chairDistance);
+                }
+
+                RBG.selection = src;
+
+                classthingies.Add(RBG);
+            }
+
+            obj.classBuilders = classthingies.ToArray();
+
+            
 
             
 
@@ -717,6 +740,15 @@ namespace BBChallengeMaker.MapData
             foreach (WeightedRoomBuilder wrb in me.classBuilders)
             {
                 RoomBuilderGeneric RBG = new RoomBuilderGeneric();
+                
+                if (wrb.selection.GetType().Name == "ClassBuilder") //remember to add ActivityPre later
+                {
+                    RBG = new ClassBuilderGeneric();
+                    FieldInfo chairDistance = AccessTools.Field(typeof(ClassBuilder), "chairDistance");
+                    ((ClassBuilderGeneric)RBG).chairDistance = (float)chairDistance.GetValue(wrb.selection as ClassBuilder);
+                }
+                //MathMachineRoom also has some weird unknown variables so remember to add those here later
+
                 RBG.Weight = wrb.weight;
                 RBG.Name = wrb.selection.GetType().Name;
                 classthingies.Add(RBG);

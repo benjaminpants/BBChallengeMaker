@@ -75,6 +75,11 @@ namespace BBChallengeMaker.MapData
         public float windowChance = 50f;
     }
 
+    public class ClassBuilderGeneric : RoomBuilderGeneric
+    {
+        public float chairDistance = 0.2f;
+    }
+
     public class LockerBuilderGeneric : HallBuilderGeneric
     {
         public int minLockers = 15;
