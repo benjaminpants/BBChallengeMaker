@@ -178,6 +178,8 @@ namespace BBChallengeMaker.MapData
 
         public List<RoomBuilderGeneric> classBuilders = new List<RoomBuilderGeneric>();
 
+        public List<RoomBuilderGeneric> facultyBuilders = new List<RoomBuilderGeneric>();
+
         public void SendToData(ref LevelObject obj)
         {
             obj.minSize = minSize;
@@ -450,6 +452,7 @@ namespace BBChallengeMaker.MapData
 
             List<WeightedRoomBuilder> officethingies = new List<WeightedRoomBuilder>();
             List<WeightedRoomBuilder> classthingies = new List<WeightedRoomBuilder>();
+            List<WeightedRoomBuilder> facultythingies = new List<WeightedRoomBuilder>();
             foreach (RoomBuilderGeneric wrb in officeBuilders)
             {
                 WeightedRoomBuilder RBG = new WeightedRoomBuilder();
@@ -490,9 +493,23 @@ namespace BBChallengeMaker.MapData
 
             obj.classBuilders = classthingies.ToArray();
 
-            
+            foreach (RoomBuilderGeneric wrb in facultyBuilders)
+            {
+                WeightedRoomBuilder RBG = new WeightedRoomBuilder();
+                RBG.weight = wrb.Weight;
 
-            
+                RoomBuilder src = allroombuilders.Find(x => x.GetType().Name == wrb.Name);
+
+                RBG.selection = src;
+
+                facultythingies.Add(RBG);
+            }
+
+
+            obj.facultyBuilders = facultythingies.ToArray();
+
+
+
 
 
         }
@@ -740,7 +757,7 @@ namespace BBChallengeMaker.MapData
             foreach (WeightedRoomBuilder wrb in me.classBuilders)
             {
                 RoomBuilderGeneric RBG = new RoomBuilderGeneric();
-                
+
                 if (wrb.selection.GetType().Name == "ClassBuilder") //remember to add ActivityPre later
                 {
                     RBG = new ClassBuilderGeneric();
@@ -753,8 +770,18 @@ namespace BBChallengeMaker.MapData
                 RBG.Name = wrb.selection.GetType().Name;
                 classthingies.Add(RBG);
             }
-
             obj.classBuilders = classthingies;
+
+            List<RoomBuilderGeneric> facultythingies = new List<RoomBuilderGeneric>();
+            foreach (WeightedRoomBuilder wrb in me.facultyBuilders)
+            {
+                RoomBuilderGeneric RBG = new RoomBuilderGeneric();
+                RBG.Weight = wrb.weight;
+                RBG.Name = wrb.selection.GetType().Name;
+                facultythingies.Add(RBG);
+            }
+
+            obj.facultyBuilders = facultythingies;
             
 
             return obj;
