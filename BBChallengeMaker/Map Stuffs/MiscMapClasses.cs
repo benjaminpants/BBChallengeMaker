@@ -23,4 +23,20 @@ namespace BBChallengeMaker.MapData
         public string Character;
     }
 
+    public class ItemGeneric
+    {
+        public int weight;
+        public string Item;
+        public ItemGeneric()
+        {
+
+        }
+
+        public ItemGeneric(string name, int wayt)
+        {
+            weight = wayt;
+            Item = name;
+        }
+    }
+
 }

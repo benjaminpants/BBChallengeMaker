@@ -166,6 +166,18 @@ namespace BBChallengeMaker.MapData
 
         public List<string> forcedNpcs = new List<string>();
 
+        public List<ItemGeneric> items = new List<ItemGeneric>();
+
+        public List<ItemGeneric> shopItems = new List<ItemGeneric>();
+
+        public List<ItemGeneric> fieldTripItems = new List<ItemGeneric>();
+
+        public List<RoomBuilderGeneric> specialRooms = new List<RoomBuilderGeneric>();
+
+        public List<RoomBuilderGeneric> officeBuilders = new List<RoomBuilderGeneric>();
+
+        public List<RoomBuilderGeneric> classBuilders = new List<RoomBuilderGeneric>();
+
         public void SendToData(ref LevelObject obj)
         {
             obj.minSize = minSize;
@@ -271,7 +283,7 @@ namespace BBChallengeMaker.MapData
             {
 
                 ObjectBuilder build = allobjectgenericbuilders.ToList().Find(x => x.GetType().Name == whb.Name);
-                
+
                 if (build == null)
                 {
                     UnityEngine.Debug.LogWarning("Type:\"" + whb.Name + "\" not found!");
@@ -314,7 +326,7 @@ namespace BBChallengeMaker.MapData
                         HallObjectBuilderGeneric gen = (HallObjectBuilderGeneric)whb;
                         FieldInfo objectPlacer = AccessTools.Field(typeof(GenericHallBuilder), "objectPlacer");
                         FieldInfo prefab = AccessTools.Field(typeof(ObjectPlacer), "prefab");
-                        
+
                         try
                         {
                             build = GameObject.Instantiate(Resources.FindObjectsOfTypeAll<GenericHallBuilder>().ToList().Find(x => (prefab.GetValue((objectPlacer.GetValue(x) as ObjectPlacer)) as GameObject).name == gen.Prefab)); //if the variables where public the predicate would just be: x.objectPlacer.prefab.name == gen.Prefab
@@ -328,7 +340,7 @@ namespace BBChallengeMaker.MapData
                         }
                     }
                 }
-                catch(Exception E)
+                catch (Exception E)
                 {
                     UnityEngine.Debug.LogError("Error encountered while trying to parse specialHallBuilders!");
                     UnityEngine.Debug.LogException(E);
@@ -370,10 +382,96 @@ namespace BBChallengeMaker.MapData
                 weightednpcs.Add(npctoadd);
             }
             obj.potentialNPCs = weightednpcs;
+
+            List<WeightedItemObject> weighteditems = new List<WeightedItemObject>();
+            List<WeightedItem> weighteditemsnotobjects = new List<WeightedItem>();
+
+            List<ItemObject> allitemobjects = Resources.FindObjectsOfTypeAll<ItemObject>().ToList();
+
+            foreach (ItemGeneric itmgn in items)
+            {
+                WeightedItemObject curitem = new WeightedItemObject();
+                curitem.weight = itmgn.weight;
+                curitem.selection = allitemobjects.Find(x => x.itemType.ToString() == itmgn.Item);
+                weighteditems.Add(curitem);
+            }
+            obj.items = weighteditems.ToArray();
+            weighteditems = new List<WeightedItemObject>();
+            foreach (ItemGeneric itmgn in shopItems)
+            {
+                WeightedItemObject curitem = new WeightedItemObject();
+                curitem.weight = itmgn.weight;
+                curitem.selection = allitemobjects.Find(x => x.itemType.ToString() == itmgn.Item);
+                weighteditems.Add(curitem);
+            }
+            obj.shopItems = weighteditems.ToArray();
+
+            foreach (ItemGeneric itmgn in fieldTripItems)
+            {
+                WeightedItem curitem = new WeightedItem();
+                curitem.weight = itmgn.weight;
+                curitem.selection = allitemobjects.Find(x => x.itemType.ToString() == itmgn.Item);
+                weighteditemsnotobjects.Add(curitem);
+            }
+
+
+            List<SpecialRoomCreator> allspecialbuilders = Resources.FindObjectsOfTypeAll<SpecialRoomCreator>().ToList();
+
+            List<RoomBuilder> allroombuilders = Resources.FindObjectsOfTypeAll<RoomBuilder>().ToList();
+
+            foreach (RoomBuilderGeneric rbg in specialRooms)
+            {
+                WeightedRoomBuilder curitem = new WeightedRoomBuilder();
+                curitem.weight = rbg.Weight;
+                SpecialRoomCreator src = allspecialbuilders.Find(x => x.GetType().Name == rbg.Name);
+                if (src == null) continue;
+                if (rbg.Name == "LibraryCreator")
+                {
+                    LibraryCreator lc = (LibraryCreator)src;
+                    FieldInfo maxEndItems = AccessTools.Field(typeof(LibraryCreator), "maxEndItems");
+                    FieldInfo items = AccessTools.Field(typeof(LibraryCreator), "items");
+                    maxEndItems.SetValue(lc, ((LibraryBuilderGeneric)rbg).maxEndItems);
+                    List<WeightedItemObject> wooteditems = new List<WeightedItemObject>();
+                    foreach (ItemGeneric gen in (rbg as LibraryBuilderGeneric).Items)
+                    {
+                        WeightedItemObject wib = new WeightedItemObject();
+                        wib.weight = gen.weight;
+                        wib.selection = allitemobjects.Find(x => x.itemType.ToString() == gen.Item);
+                        wooteditems.Add(wib);
+                    }
+                    items.SetValue(lc,wooteditems.ToArray());
+
+
+                }
+                
+            }
+
+            obj.fieldTripItems = weighteditemsnotobjects;
+
+            List<WeightedRoomBuilder> officethingies = new List<WeightedRoomBuilder>();
+            foreach (RoomBuilderGeneric wrb in officeBuilders)
+            {
+                WeightedRoomBuilder RBG = new WeightedRoomBuilder();
+                RBG.weight = wrb.Weight;
+
+                RoomBuilder src = allroombuilders.Find(x => x.GetType().Name == wrb.Name);
+
+                if (wrb.Name == "OfficeBuilderStandard")
+                {
+                    FieldInfo windowchance = AccessTools.Field(typeof(OfficeBuilderStandard), "windowChance");
+                    windowchance.SetValue(src as OfficeBuilderStandard,((OfficeBuilderGeneric)wrb).windowChance);
+                }
+
+                RBG.selection = src;
+
+                officethingies.Add(RBG);
+            }
+
+            obj.officeBuilders = officethingies.ToArray();
+
             
 
 
-            
         }
 
 
@@ -446,7 +544,7 @@ namespace BBChallengeMaker.MapData
             obj.standardLightChance = me.standardLightChance;
             obj.standardLightStrength = me.standardLightStrength;
             obj.standardLightColor = new LightColor(me.standardLightColor.r, me.standardLightColor.g, me.standardLightColor.b);
-            obj.standardDarkLevel = new LightColor(me.standardDarkLevel.r, me.standardLightColor.g, me.standardLightColor.b);
+            obj.standardDarkLevel = new LightColor(me.standardDarkLevel.r, me.standardDarkLevel.g, me.standardDarkLevel.b);
             obj.additionalNPCs = me.additionalNPCs;
             obj.posterChance = me.posterChance;
             obj.baseRoomItemValue = me.baseRoomItemValue;
@@ -560,6 +658,72 @@ namespace BBChallengeMaker.MapData
                 npcgen.weight = npc.weight;
                 obj.potentialNPCs.Add(npcgen);
             }
+            foreach (WeightedItemObject itmobj in me.items)
+            {
+                obj.items.Add(new ItemGeneric(itmobj.selection.itemType.ToString(), itmobj.weight));
+            }
+
+            foreach (WeightedItemObject itmobj in me.shopItems)
+            {
+                obj.shopItems.Add(new ItemGeneric(itmobj.selection.itemType.ToString(), itmobj.weight));
+            }
+
+            List<RoomBuilderGeneric> weightedspecials = new List<RoomBuilderGeneric>();
+
+            foreach (WeightedSpecialRoomCreator src in me.specialRooms)
+            {
+                RoomBuilderGeneric spec = new RoomBuilderGeneric();
+                if (src.selection.GetType() == typeof(LibraryCreator))
+                {
+                    LibraryBuilderGeneric lib = new LibraryBuilderGeneric();
+                    FieldInfo maxEndItems = AccessTools.Field(typeof(LibraryCreator), "maxEndItems");
+                    FieldInfo items = AccessTools.Field(typeof(LibraryCreator), "items");
+                    lib.maxEndItems = (int)maxEndItems.GetValue((LibraryCreator)src.selection);
+                    List<ItemGeneric> genericitems = new List<ItemGeneric>();
+                    foreach (WeightedItemObject weightitem in ((WeightedItemObject[])items.GetValue(src.selection)))
+                    {
+                        genericitems.Add(new ItemGeneric(weightitem.selection.itemType.ToString(),weightitem.weight));
+                    }
+                    lib.Items = genericitems;
+                    spec = lib;
+                }
+                spec.Name = src.selection.GetType().Name;
+                spec.Weight = src.weight;
+
+                weightedspecials.Add(spec);
+            }
+
+            obj.specialRooms = weightedspecials;
+
+            List<RoomBuilderGeneric> officethingies = new List<RoomBuilderGeneric>();
+            foreach (WeightedRoomBuilder wrb in me.officeBuilders)
+            {
+                RoomBuilderGeneric RBG = new RoomBuilderGeneric();
+
+                if (wrb.selection.GetType().Name == "OfficeBuilderStandard")
+                {
+                    FieldInfo windowchance = AccessTools.Field(typeof(OfficeBuilderStandard), "windowChance");
+                    RBG = new OfficeBuilderGeneric();
+                    ((OfficeBuilderGeneric)RBG).windowChance = (float)windowchance.GetValue(wrb.selection as OfficeBuilderStandard);
+                }
+                RBG.Weight = wrb.weight;
+                RBG.Name = wrb.selection.GetType().Name;
+                officethingies.Add(RBG);
+            }
+
+            obj.officeBuilders = officethingies;
+
+            List<RoomBuilderGeneric> classthingies = new List<RoomBuilderGeneric>();
+            foreach (WeightedRoomBuilder wrb in me.classBuilders)
+            {
+                RoomBuilderGeneric RBG = new RoomBuilderGeneric();
+                RBG.Weight = wrb.weight;
+                RBG.Name = wrb.selection.GetType().Name;
+                classthingies.Add(RBG);
+            }
+
+            obj.classBuilders = classthingies;
+            
 
             return obj;
         }

@@ -55,7 +55,24 @@ namespace BBChallengeMaker.MapData
 
     public class LockdownDoorBuilderGeneric : ObjectBuilderGeneric
     {
-        public int buttonRange = 2;
+        public int buttonRange = 5;
+    }
+
+    public class RoomBuilderGeneric
+    {
+        public string Name;
+        public int Weight;
+    }
+
+    public class LibraryBuilderGeneric : RoomBuilderGeneric
+    {
+        public int maxEndItems = 2;
+        public List<ItemGeneric> Items = new List<ItemGeneric>();
+    }
+
+    public class OfficeBuilderGeneric : RoomBuilderGeneric
+    {
+        public float windowChance = 50f;
     }
 
     public class LockerBuilderGeneric : HallBuilderGeneric
