@@ -39,4 +39,20 @@ namespace BBChallengeMaker.MapData
         }
     }
 
+    public class EventGeneric
+    {
+        public int weight;
+        public string Event;
+        public EventGeneric()
+        {
+
+        }
+
+        public EventGeneric(string name, int wayt)
+        {
+            weight = wayt;
+            Event = name;
+        }
+    }
+
 }

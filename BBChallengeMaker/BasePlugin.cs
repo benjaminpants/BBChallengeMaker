@@ -30,6 +30,8 @@ namespace BBChallengeMaker
 
         public static List<MapData.LevelData> LevelDatas = new List<MapData.LevelData>();
 
+        public static int SelectedMap = 0;
+
         private static Texture TextureFromBase64(string base64)
         {
             byte[] array = Convert.FromBase64String(base64);

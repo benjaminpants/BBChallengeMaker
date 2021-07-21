@@ -180,6 +180,8 @@ namespace BBChallengeMaker.MapData
 
         public List<RoomBuilderGeneric> facultyBuilders = new List<RoomBuilderGeneric>();
 
+        public List<EventGeneric> randomEvents = new List<EventGeneric>();
+
         public void SendToData(ref LevelObject obj)
         {
             obj.minSize = minSize;
@@ -508,7 +510,16 @@ namespace BBChallengeMaker.MapData
 
             obj.facultyBuilders = facultythingies.ToArray();
 
-
+            List<RandomEvent> events = Resources.FindObjectsOfTypeAll<RandomEvent>().ToList();
+            List<WeightedRandomEvent> eventsweighted = new List<WeightedRandomEvent>();
+            foreach (EventGeneric eg in randomEvents)
+            {
+                WeightedRandomEvent wre = new WeightedRandomEvent();
+                wre.weight = eg.weight;
+                wre.selection = events.Find(x => x.GetType().Name == eg.Event);
+                eventsweighted.Add(wre);
+            }
+            obj.randomEvents = eventsweighted;
 
 
 
@@ -782,9 +793,18 @@ namespace BBChallengeMaker.MapData
             }
 
             obj.facultyBuilders = facultythingies;
-            
 
-            return obj;
+            List<EventGeneric> genevents = new List<EventGeneric>();
+
+            foreach (WeightedRandomEvent wre in me.randomEvents)
+            {
+                genevents.Add(new EventGeneric(wre.selection.GetType().Name,wre.weight));
+            }
+
+            obj.randomEvents = genevents;
+
+
+           return obj;
         }
     }
 
